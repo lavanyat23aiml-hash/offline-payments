@@ -148,6 +148,7 @@ const PinScreen = () => {
                 bankName: merchantBank || 'Bank',
                 type: type || 'offline',
                 tokens: tokenIds,
+                fullTokens: tokensUsed,
             });
 
             setProcessingDone(true);

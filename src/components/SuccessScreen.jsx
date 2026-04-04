@@ -132,7 +132,7 @@ const SuccessScreen = () => {
                         <h4 style={{ fontSize: '1rem', fontWeight: 800 }}>Merchant Notification Sent</h4>
                     </div>
                     <p style={{ fontSize: '0.85rem', opacity: 0.9, lineHeight: 1.6 }}>
-                        "{transaction.merchantName} has received ₹{transaction.amount} as a guaranteed pre-authorized token. Settlement will complete automatically when you go online."
+                        "Payment received as bank-authorized tokens issued by Demo Bank. These tokens are cryptographically signed and guarantee settlement upon sync."
                     </p>
                 </motion.div>
             )}

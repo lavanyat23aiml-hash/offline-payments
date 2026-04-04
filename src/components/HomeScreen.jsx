@@ -26,7 +26,7 @@ const HomeScreen = ({ balance, walletBalance, handlePreload, isOnline, syncStats
     const quickActions = [
         { icon: <QrCode size={26} />, label: 'Scan QR', path: '/scan', color: '#673ab7' },
         { icon: <Building2 size={26} />, label: 'To Bank', path: '/bank-transfer', color: '#1a73e8' },
-        { icon: <Smartphone size={26} />, label: 'To Contact', path: '/transfer', color: '#2e7d32' },
+        { icon: <Smartphone size={26} />, label: 'UPI ID', path: '/transfer', color: '#2e7d32' },
         { icon: <History size={26} />, label: 'History', path: '/history', color: '#ef6c00' },
     ];
 

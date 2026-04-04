@@ -1,28 +1,24 @@
+import { BankServer } from './bankServer';
+
 /**
  * Token Manager — Pre-authorized offline payment tokens
- * Hard cap: ₹1,000 per load. Each token is single-use with 7-day expiry.
- * Tokens are now funded from the Wallet Balance.
- * Features "Token Splitting" for partial payments.
+ * Employs Simulated Bank Server for cryptographic Token Issuance.
  */
 const TOKEN_KEY = 'offline_payment_tokens';
 
 export const TokenManager = {
   init() {
-    // Starts with 0 tokens by default on new devices (Removed auto-seeding).
     if (localStorage.getItem(TOKEN_KEY) === null) {
       localStorage.setItem(TOKEN_KEY, JSON.stringify([]));
     }
   },
 
-  async preloadTokens(amounts = []) {
-    const tokens = amounts.map(amount => ({
-      id: `tok_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      amount,
-      timestamp: Date.now(),
-      expiry: Date.now() + 7 * 24 * 60 * 60 * 1000,
-      signature: btoa(`signed_${amount}_${Date.now()}`),
-      used: false,
-    }));
+  async preloadTokens(userId, totalAmount) {
+    if (!userId) userId = 'demo_user';
+    
+    // Call the Bank Server to securely issue cryptographically signed tokens
+    // taking the requested amount and issuing strict denominations.
+    const tokens = await BankServer.issueTokens(userId, totalAmount);
 
     const all = [...this.getTokens(), ...tokens];
     localStorage.setItem(TOKEN_KEY, JSON.stringify(all));
@@ -42,9 +38,9 @@ export const TokenManager = {
     return this.getActiveTokens().reduce((s, t) => s + t.amount, 0);
   },
 
-  getMaxDailyLimit() { return 1000; }, // Virtual max per-load limit for display
+  getMaxDailyLimit() { return 1000; },
 
-  getMaxBalance() { return 1000; }, // Max allowed in offline reserve at once
+  getMaxBalance() { return 1000; },
 
   getTokenById(id) {
     return this.getTokens().find(t => t.id === id) || null;
@@ -59,8 +55,8 @@ export const TokenManager = {
 
   /**
    * consumeTokens — Robustly handles partial payments via Token Splitting
-   * If a token is larger than the needed payment, it is consumed and a 
-   * "change" token is added back to the pool.
+   * Returns FULL token objects so the BankServer can cryptographically 
+   * validate them during sync.
    */
   consumeTokens(amount) {
     const all = this.getTokens();
@@ -72,7 +68,6 @@ export const TokenManager = {
     
     let rem = amount;
     const selected = [];
-    const newTokens = [];
 
     // Step 1: Use exact or smaller tokens first
     for (const tok of available) {
@@ -97,10 +92,11 @@ export const TokenManager = {
           id: `tok_change_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
           amount: changeAmount,
           timestamp: Date.now(),
-          expiry: largeTok.expiry, // Maintain original expiry
-          signature: btoa(`signed_change_${changeAmount}_${Date.now()}`),
+          expiry: largeTok.expiry,
+          signature: btoa(`signed_device_change_${changeAmount}_${Date.now()}`),
           used: false,
-          isChange: true
+          isChange: true,
+          parentId: largeTok.tokenId
         };
         
         all.push(changeTok); // Add change back to pool
@@ -116,7 +112,7 @@ export const TokenManager = {
 
   invalidateToken(id) {
     const all = this.getTokens();
-    const t = all.find(x => x.id === id);
+    const t = all.find(x => (x.id || x.tokenId) === id);
     if (t) { t.used = true; localStorage.setItem(TOKEN_KEY, JSON.stringify(all)); }
   },
 

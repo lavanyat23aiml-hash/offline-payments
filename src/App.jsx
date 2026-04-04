@@ -113,7 +113,9 @@ const AppContent = () => {
     try {
         // Transfer logic: Deduct from Wallet, Add to Tokens
         SyncManager.updateWalletBalance(-amount);
-        await TokenManager.preloadTokens([amount]);
+        const user = JSON.parse(localStorage.getItem('upi_user') || '{}');
+        const userId = user.upiId || 'demo_user';
+        await TokenManager.preloadTokens(userId, amount);
         
         refreshBalances();
         alert(`Successfully transferred ₹${amount} to offline tokens.`);

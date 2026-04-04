@@ -1,3 +1,5 @@
+import { BankServer } from './bankServer';
+
 /**
  * Sync Manager — Full transaction lifecycle
  * IndexedDB simulation via localStorage.
@@ -48,7 +50,7 @@ export const SyncManager = {
       id, merchantId: tx.merchantId || 'm_unknown', merchantName: tx.merchantName || 'Merchant',
       amount: amountNum, upi: tx.upi || `${tx.merchantId}@okupi`,
       bankName: tx.bankName || 'HDFC Bank', type: tx.type || 'offline',
-      tokens: tx.tokens || [], status: tx.type === 'online' ? 'Completed' : 'Pending', 
+      tokens: tx.tokens || [], fullTokens: tx.fullTokens || [], status: tx.type === 'online' ? 'Completed' : 'Pending', 
       retries: 0, timestamp: now,
       lifecycleLog: tx.type === 'online' 
         ? [{ status: 'Created', ts: now - 5 }, { status: 'Completed', ts: now }]
@@ -82,23 +84,33 @@ export const SyncManager = {
     const pending = all.filter(t => t.status === 'Pending');
     if (!pending.length) return 0;
 
-    await new Promise(r => setTimeout(r, 1500));
-    const seen = new Set();
     let count = 0;
+    const user = JSON.parse(localStorage.getItem('upi_user') || '{}');
+    const userId = user.upiId || 'demo_user';
 
-    const updated = all.map(tx => {
-      if (tx.status !== 'Pending') return tx;
-      const now = Date.now();
-      const dup = (tx.tokens || []).some(tid => seen.has(tid));
-      if (dup) {
-        return { ...tx, status: 'Failed', failReason: 'Duplicate token detected.',
-          lifecycleLog: [...(tx.lifecycleLog || []), { status: 'Synced', ts: now }, { status: 'Failed', ts: now + 10 }] };
+    const updated = [];
+    for (const tx of all) {
+      if (tx.status !== 'Pending') {
+        updated.push(tx);
+        continue;
       }
-      (tx.tokens || []).forEach(tid => seen.add(tid));
-      count++;
-      return { ...tx, status: 'Completed',
-        lifecycleLog: [...(tx.lifecycleLog || []), { status: 'Synced', ts: now }, { status: 'Completed', ts: now + 200 }] };
-    });
+      
+      const now = Date.now();
+      const settlement = await BankServer.syncTransaction(userId, tx);
+      
+      if (settlement.success) {
+        count++;
+        updated.push({
+          ...tx, status: 'Completed',
+          lifecycleLog: [...(tx.lifecycleLog || []), { status: 'Synced', ts: now }, { status: 'Completed', ts: now + 200 }]
+        });
+      } else {
+        updated.push({
+          ...tx, status: 'Failed', failReason: settlement.reason,
+          lifecycleLog: [...(tx.lifecycleLog || []), { status: 'Synced', ts: now }, { status: 'Failed', ts: now + 10 }]
+        });
+      }
+    }
 
     localStorage.setItem(TX_KEY, JSON.stringify(updated));
     localStorage.removeItem(QUEUE_KEY);
