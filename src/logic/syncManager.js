@@ -1,76 +1,127 @@
 /**
- * Sync Manager
- * Manages the pending transaction queue and syncing with the server.
+ * Sync Manager — Full transaction lifecycle
+ * IndexedDB simulation via localStorage.
+ * Transactions are IMMUTABLE.
  */
-
-const TRANSACTION_STORAGE_KEY = 'offline_transactions';
+const TX_KEY = 'offline_transactions';
+const QUEUE_KEY = 'offline_sync_queue';
+const WALLET_KEY = 'upi_wallet_balance';
+const INITIAL_WALLET = 10000;
 
 export const SyncManager = {
-    init() {
-        if (this.getAllTransactions().length <= 2) {
-            const initialTx = [
-                { id: 'TXN_SAMPLE_1', merchantName: 'Big Bazaar', amount: 450, status: 'Completed', timestamp: Date.now() - 86400000, bankName: 'SBI', type: 'offline' },
-                { id: 'TXN_SAMPLE_2', merchantName: 'Starbucks', amount: 280, status: 'Completed', timestamp: Date.now() - 3600000, bankName: 'HDFC Bank', type: 'online' },
-                { id: 'TXN_SAMPLE_3', merchantName: 'Apollo Pharmacy', amount: 1500, status: 'Completed', timestamp: Date.now() - 172800000, bankName: 'ICICI Bank', type: 'offline' },
-                { id: 'TXN_SAMPLE_4', merchantName: 'Shell Petrol', amount: 2500, status: 'Completed', timestamp: Date.now() - 259200000, bankName: 'Axis Bank', type: 'online' },
-                { id: 'TXN_SAMPLE_5', merchantName: 'Burger King', amount: 560, status: 'Completed', timestamp: Date.now() - 10800000, bankName: 'SBI', type: 'offline' }
-            ];
-            // Only set if really empty to avoid overwriting user experiments
-            if (this.getAllTransactions().length === 0) {
-               localStorage.setItem(TRANSACTION_STORAGE_KEY, JSON.stringify(initialTx));
-            }
-        }
-    },
-    /**
-     * Adds a transaction to the local pending queue.
-     */
-    addTransaction(transaction) {
-        const transactions = this.getAllTransactions();
-        const txId = `TXN${Date.now()}${Math.floor(Math.random() * 1000)}`;
-        const newTx = {
-            ...transaction,
-            id: txId,
-            timestamp: Date.now(),
-            status: 'Pending',
-            type: transaction.type || 'offline', // Default to offline in this simulator
-            bankName: transaction.bankName || 'HDFC Bank' // Default mock bank
-        };
-        transactions.unshift(newTx);
-        localStorage.setItem(TRANSACTION_STORAGE_KEY, JSON.stringify(transactions));
-        return newTx;
-    },
-
-    getAllTransactions() {
-        const data = localStorage.getItem(TRANSACTION_STORAGE_KEY);
-        return data ? JSON.parse(data) : [];
-    },
-
-    /**
-     * Syncs pending transactions with the server.
-     * Simulates network delay and server response.
-     */
-    async syncTransactions() {
-        const transactions = this.getAllTransactions();
-        const pending = transactions.filter(tx => tx.status === 'Pending');
-
-        if (pending.length === 0) return 0;
-
-        // Simulate network delay
-        await new Promise(resolve => setTimeout(resolve, 2000));
-
-        // Mark as completed
-        const updated = transactions.map(tx => {
-            if (tx.status === 'Pending') {
-                return { ...tx, status: 'Completed' };
-            }
-            return tx;
-        });
-
-        localStorage.setItem(TRANSACTION_STORAGE_KEY, JSON.stringify(updated));
-        return pending.length;
-    },
-
-    clearHistory() {
-        localStorage.removeItem(TRANSACTION_STORAGE_KEY);
+  init() {
+    // Initial State: Wallet = ₹10,000
+    if (localStorage.getItem(WALLET_KEY) === null) {
+      localStorage.setItem(WALLET_KEY, JSON.stringify(INITIAL_WALLET));
     }
+    
+    // Transactions history starts empty.
+    if (!localStorage.getItem(TX_KEY)) {
+      localStorage.setItem(TX_KEY, JSON.stringify([]));
+    }
+  },
+
+  getWalletBalance() {
+    return Number(localStorage.getItem(WALLET_KEY) || INITIAL_WALLET);
+  },
+
+  updateWalletBalance(delta) {
+    const current = this.getWalletBalance();
+    localStorage.setItem(WALLET_KEY, JSON.stringify(current + delta));
+  },
+
+  addTransaction(tx) {
+    const all = this.getAllTransactions();
+    const id = `TXN${Date.now()}${Math.floor(Math.random() * 9000 + 1000)}`;
+    const now = Date.now();
+    const amountNum = Number(tx.amount);
+
+    // Online Transaction logic: Deduct from Wallet
+    if (tx.type === 'online') {
+      if (this.getWalletBalance() < amountNum) {
+        throw new Error('Insufficient wallet balance for online payment.');
+      }
+      this.updateWalletBalance(-amountNum);
+    }
+
+    const newTx = {
+      id, merchantId: tx.merchantId || 'm_unknown', merchantName: tx.merchantName || 'Merchant',
+      amount: amountNum, upi: tx.upi || `${tx.merchantId}@okupi`,
+      bankName: tx.bankName || 'HDFC Bank', type: tx.type || 'offline',
+      tokens: tx.tokens || [], status: tx.type === 'online' ? 'Completed' : 'Pending', 
+      retries: 0, timestamp: now,
+      lifecycleLog: tx.type === 'online' 
+        ? [{ status: 'Created', ts: now - 5 }, { status: 'Completed', ts: now }]
+        : [{ status: 'Created', ts: now - 5 }, { status: 'Pending', ts: now }],
+    };
+
+    all.unshift(newTx);
+    localStorage.setItem(TX_KEY, JSON.stringify(all));
+    if (tx.type === 'offline') this._addQueue(id);
+    return newTx;
+  },
+
+  getAllTransactions() {
+    try { return JSON.parse(localStorage.getItem(TX_KEY) || '[]'); } catch { return []; }
+  },
+
+  getTransactionById(id) { return this.getAllTransactions().find(t => t.id === id) || null; },
+
+  getStats() {
+    const all = this.getAllTransactions();
+    return {
+      total: all.length,
+      pending: all.filter(t => t.status === 'Pending').length,
+      completed: all.filter(t => t.status === 'Completed').length,
+      failed: all.filter(t => t.status === 'Failed').length,
+    };
+  },
+
+  async syncTransactions() {
+    const all = this.getAllTransactions();
+    const pending = all.filter(t => t.status === 'Pending');
+    if (!pending.length) return 0;
+
+    await new Promise(r => setTimeout(r, 1500));
+    const seen = new Set();
+    let count = 0;
+
+    const updated = all.map(tx => {
+      if (tx.status !== 'Pending') return tx;
+      const now = Date.now();
+      const dup = (tx.tokens || []).some(tid => seen.has(tid));
+      if (dup) {
+        return { ...tx, status: 'Failed', failReason: 'Duplicate token detected.',
+          lifecycleLog: [...(tx.lifecycleLog || []), { status: 'Synced', ts: now }, { status: 'Failed', ts: now + 10 }] };
+      }
+      (tx.tokens || []).forEach(tid => seen.add(tid));
+      count++;
+      return { ...tx, status: 'Completed',
+        lifecycleLog: [...(tx.lifecycleLog || []), { status: 'Synced', ts: now }, { status: 'Completed', ts: now + 200 }] };
+    });
+
+    localStorage.setItem(TX_KEY, JSON.stringify(updated));
+    localStorage.removeItem(QUEUE_KEY);
+    return count;
+  },
+
+  async retryTransaction(id) {
+    const all = this.getAllTransactions();
+    const i = all.findIndex(t => t.id === id);
+    if (i === -1 || all[i].status !== 'Failed' || all[i].retries >= 3) return false;
+    all[i] = { ...all[i], status: 'Pending', retries: all[i].retries + 1 };
+    localStorage.setItem(TX_KEY, JSON.stringify(all));
+    this._addQueue(id);
+    return true;
+  },
+
+  // RESET removed to ensure IMMUTABILITY.
+  
+  _addQueue(id) {
+    try {
+      const q = JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]');
+      if (!q.includes(id)) q.push(id);
+      localStorage.setItem(QUEUE_KEY, JSON.stringify(q));
+    } catch {}
+  },
 };

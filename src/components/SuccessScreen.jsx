@@ -1,119 +1,218 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { CheckCircle2, Share2, ArrowRight, Clock, Zap } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+    CheckCircle2, 
+    Share2, 
+    ArrowRight, 
+    Zap, 
+    ShieldCheck, 
+    Building2, 
+    Download,
+    RefreshCw
+} from 'lucide-react';
 import confetti from 'canvas-confetti';
 
+/**
+ * SuccessScreen
+ * Detailed receipt with Merchant Trust Banner and Token IDs for offline payments.
+ */
 const SuccessScreen = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { transaction } = location.state || {};
 
     useEffect(() => {
-        if (transaction) {
-            confetti({
-                particleCount: 150,
-                spread: 70,
-                origin: { y: 0.6 },
-                colors: ['#673ab7', '#1a73e8', '#00c853']
-            });
-
-            // Play a simulated successful ping sound (visual cue suffice)
-        } else {
+        if (!transaction) {
             navigate('/');
+            return;
         }
-    }, [transaction]);
+
+        // Celebrate success!
+        confetti({
+            particleCount: 200,
+            spread: 90,
+            origin: { y: 0.6 },
+            colors: transaction.type === 'offline' 
+                ? ['#ffab00', '#ff6f00', '#fff9c4'] 
+                : ['#673ab7', '#512da8', '#00c853']
+        });
+    }, [transaction, navigate]);
 
     if (!transaction) return null;
+
+    const isOffline = transaction.type === 'offline';
+    const shortTokens = (transaction.tokens || []).map(id => id.split('_').pop()?.slice(-6));
 
     return (
         <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="success-screen"
-            style={{ textAlign: 'center', paddingTop: '40px' }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            style={{ 
+                padding: '40px 24px', 
+                textAlign: 'center',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center'
+            }}
         >
+            {/* Main Success Circle */}
             <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ type: 'spring', damping: 12, stiffness: 200, delay: 0.2 }}
-                style={{ marginBottom: '24px' }}
+                style={{ 
+                    width: '120px', 
+                    height: '120px', 
+                    background: '#e8f5e9', 
+                    borderRadius: '50%', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    marginBottom: '24px',
+                    color: 'var(--success)',
+                    boxShadow: '0 12px 30px rgba(46, 125, 50, 0.15)'
+                }}
             >
-                <CheckCircle2 size={100} color="var(--success)" strokeWidth={2.5} />
+                <CheckCircle2 size={70} strokeWidth={1.5} />
             </motion.div>
 
-            <h1 style={{ color: 'var(--success)', marginBottom: '8px' }}>Payment Successful</h1>
-            {transaction.type === 'offline' ? (
+            <h1 style={{ fontSize: '2.25rem', fontWeight: 800, color: 'var(--success)', marginBottom: '8px' }}>
+                ₹{transaction.amount} Paid
+            </h1>
+
+            {/* Offline/Online Logic Badge */}
+            {isOffline ? (
                 <div style={{
-                    display: 'inline-block',
-                    background: '#ffab00',
-                    color: 'white',
-                    padding: '8px 20px',
-                    borderRadius: '12px',
-                    fontWeight: 800,
-                    fontSize: '0.9rem',
-                    marginBottom: '24px',
-                    border: '2px solid white',
-                    boxShadow: '0 4px 12px rgba(255, 171, 0, 0.4)',
-                    letterSpacing: '1px'
+                    display: 'flex', alignItems: 'center', gap: '8px',
+                    background: '#ffab00', color: 'white',
+                    padding: '8px 20px', borderRadius: '24px',
+                    fontWeight: 800, fontSize: '0.85rem', marginBottom: '24px',
+                    boxShadow: '0 8px 20px rgba(255, 171, 0, 0.4)',
+                    letterSpacing: '0.5px'
                 }}>
-                    <Zap size={16} style={{ display: 'inline', marginRight: '4px' }} />
-                    OFFLINE RECEIPT
+                    <Zap size={14} fill="white" /> OFFLINE RECEIPT GENERATED
                 </div>
             ) : (
                 <div style={{
-                    display: 'inline-block',
-                    background: '#e8f5e9',
-                    color: '#2e7d32',
-                    padding: '8px 20px',
-                    borderRadius: '12px',
-                    fontWeight: 800,
-                    fontSize: '0.9rem',
-                    marginBottom: '24px',
-                    border: '1px solid #c8e6c9'
+                    display: 'flex', alignItems: 'center', gap: '8px',
+                    background: '#f0f0f0', color: '#666',
+                    padding: '8px 20px', borderRadius: '24px',
+                    fontWeight: 700, fontSize: '0.85rem', marginBottom: '24px',
+                    border: '1px solid #ddd'
                 }}>
-                    ONLINE PAYMENT
+                    <ShieldCheck size={14} /> ONLINE PAYMENT VERIFIED
                 </div>
             )}
 
-            <p className="text-label" style={{ marginBottom: '32px' }}>Transaction ID: {transaction.id}</p>
-
-            <div className="card" style={{ textAlign: 'left', background: '#f8fff9', border: '1px solid #e0f2e1', boxShadow: '0 8px 24px rgba(0,0,0,0.05)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
-                    <span style={{ color: '#555' }}>Paid to</span>
-                    <span style={{ fontWeight: 700 }}>{transaction.merchantName}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
-                    <span style={{ color: '#555' }}>Amount</span>
-                    <span style={{ fontWeight: 800, fontSize: '1.2rem' }}>₹{transaction.amount}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ color: '#555' }}>Status</span>
-                    <div style={{ textAlign: 'right' }}>
-                        <p style={{ fontWeight: 700, color: 'var(--success)', fontSize: '0.9rem' }}>Verified Offline</p>
-                        <p style={{ fontSize: '0.7rem', color: '#856404', display: 'flex', alignItems: 'center', gap: '4px', justifyContent: 'flex-end' }}>
-                            <Clock size={12} />
-                            Syncing soon
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <p style={{ margin: '24px 0', fontSize: '0.9rem', color: '#444', fontWeight: 500, lineHeight: 1.5 }}>
-                This payment was authorized using <span style={{ color: 'var(--primary)' }}>Offline Pre-loaded Tokens</span>. <br />
-                It will be updated in your bank statement once you connect to the internet.
+            {/* Transaction ID Mini */}
+            <p style={{ fontSize: '0.72rem', color: '#999', marginBottom: '24px', letterSpacing: '0.5px' }}>
+                REFERENCE: {transaction.id}
             </p>
 
-            <div style={{ display: 'flex', gap: '12px' }}>
-                <button className="btn btn-secondary" style={{ flex: 1 }}>
-                    <Share2 size={18} />
-                    Share
+            {/* Merchant Trust Information (Crucial Feature) */}
+            {isOffline && (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 }}
+                    style={{
+                        background: 'linear-gradient(135deg, #1a237e 0%, #283593 100%)',
+                        color: 'white',
+                        padding: '24px',
+                        borderRadius: '24px',
+                        textAlign: 'left',
+                        marginBottom: '20px',
+                        boxShadow: '0 15px 35px rgba(26, 35, 126, 0.25)'
+                    }}
+                >
+                    <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', marginBottom: '12px' }}>
+                        <Building2 size={24} style={{ flexShrink: 0, marginTop: '4px' }} />
+                        <h4 style={{ fontSize: '1rem', fontWeight: 800 }}>Merchant Notification Sent</h4>
+                    </div>
+                    <p style={{ fontSize: '0.85rem', opacity: 0.9, lineHeight: 1.6 }}>
+                        "{transaction.merchantName} has received ₹{transaction.amount} as a guaranteed pre-authorized token. Settlement will complete automatically when you go online."
+                    </p>
+                </motion.div>
+            )}
+
+            {/* Receipt Summary Card */}
+            <div className="card" style={{ 
+                width: '100%', 
+                textAlign: 'left', 
+                marginBottom: '16px',
+                background: isOffline ? '#fffdf0' : '#f9f9f9',
+                border: `1px solid ${isOffline ? '#f9eb9d' : '#eee'}`
+            }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '14px' }}>
+                    <span style={{ fontSize: '0.85rem', color: '#888' }}>Recipient</span>
+                    <span style={{ fontWeight: 700 }}>{transaction.merchantName}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '14px' }}>
+                    <span style={{ fontSize: '0.85rem', color: '#888' }}>Account</span>
+                    <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>{transaction.bankName}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '14px' }}>
+                    <span style={{ fontSize: '0.85rem', color: '#888' }}>Mode</span>
+                    <span style={{ fontWeight: 700, color: isOffline ? '#e65100' : 'var(--success)' }}>
+                        {isOffline ? 'Offline Token' : 'Direct Bank'}
+                    </span>
+                </div>
+
+                {isOffline && shortTokens && shortTokens.length > 0 && (
+                    <div style={{ borderTop: '1px dashed #ddd', paddingTop: '14px', marginTop: '4px' }}>
+                        <p style={{ fontSize: '0.72rem', color: '#999', marginBottom: '8px', fontWeight: 700 }}>TOKEN AUDIT TRAIL</p>
+                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                            {shortTokens.map((t, idx) => (
+                                <span key={idx} style={{ 
+                                    fontSize: '0.65rem', 
+                                    background: '#eee', 
+                                    padding: '4px 8px', 
+                                    borderRadius: '6px',
+                                    fontWeight: 700,
+                                    fontFamily: 'monospace'
+                                }}>
+                                    #{t}
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* Sync Notice */}
+            {isOffline && (
+                <div style={{ 
+                    display: 'flex', alignItems: 'center', gap: '10px', 
+                    color: '#e65100', fontSize: '0.85rem', fontWeight: 700,
+                    marginBottom: '24px'
+                }}>
+                    <RefreshCw size={16} /> Auto-Sync Pending
+                </div>
+            )}
+
+            {/* Actions */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', width: '100%' }}>
+                <button className="btn btn-secondary" style={{ padding: '16px', borderRadius: '16px' }}>
+                    <Share2 size={20} />
                 </button>
-                <button className="btn btn-primary" style={{ flex: 2 }} onClick={() => navigate('/')}>
-                    Done
-                    <ArrowRight size={18} />
+                <button 
+                    className="btn btn-primary" 
+                    style={{ padding: '16px', borderRadius: '16px', fontWeight: 800 }}
+                    onClick={() => navigate('/')}
+                >
+                    Done <ArrowRight size={20} />
                 </button>
             </div>
+
+            <button style={{ 
+                marginTop: '24px', background: 'none', border: 'none', 
+                color: '#aaa', fontSize: '0.8rem', fontWeight: 600,
+                display: 'flex', alignItems: 'center', gap: '8px'
+            }}>
+                <Download size={14} /> Download Receipt
+            </button>
         </motion.div>
     );
 };

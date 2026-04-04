@@ -1,14 +1,39 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { ShieldCheck, Landmark, CheckCircle2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+    ShieldCheck, 
+    Landmark, 
+    ArrowRight, 
+    Smartphone, 
+    Lock, 
+    Info,
+    CheckCircle2,
+    Zap
+} from 'lucide-react';
 
-const OnboardingScreen = () => {
+/**
+ * BankSignScreen (Onboarding)
+ * Realistic "Bank Connect" flow to initialize the app and user profile.
+ */
+const BankSignScreen = () => {
     const navigate = useNavigate();
+    const [step, setStep] = useState(1);
+    const [loading, setLoading] = useState(false);
+    const [phone, setPhone] = useState('');
 
-    const handleSelectBank = (bank) => {
+    const handleNext = async () => {
+        setLoading(true);
+        // Simulated network delay for bank authorization
+        await new Promise(r => setTimeout(r, 1200));
+        setLoading(false);
+        setStep(prev => prev + 1);
+    };
+
+    const handleFinalize = () => {
         localStorage.setItem('upi_auth', 'true');
-        localStorage.setItem('upi_selected_bank', bank);
+        // Initial setup for the demo
+        localStorage.setItem('demo_connectivity', 'true'); 
         navigate('/');
     };
 
@@ -16,81 +41,96 @@ const OnboardingScreen = () => {
         <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="onboarding-screen"
-            style={{ textAlign: 'center', padding: '40px 24px' }}
+            style={{ 
+                height: '100vh', 
+                display: 'flex', 
+                flexDirection: 'column', 
+                padding: '40px 24px',
+                textAlign: 'center',
+                background: 'white'
+            }}
         >
-            <div style={{ marginBottom: '60px' }}>
-                <div style={{
-                    width: '80px',
-                    height: '80px',
-                    background: 'var(--primary)',
-                    borderRadius: '24px',
-                    display: 'inline-flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    marginBottom: '24px',
-                    color: 'white',
-                    boxShadow: '0 12px 24px rgba(103, 58, 183, 0.3)'
-                }}>
-                    <ShieldCheck size={48} />
-                </div>
-                <h1 style={{ fontSize: '2rem', marginBottom: '12px' }}>UPI Offline</h1>
-                <p style={{ color: 'var(--text-dim)' }}>Digital Payments without Internet</p>
-            </div>
+            <AnimatePresence mode="wait">
+                {step === 1 && (
+                    <motion.div key="step1" initial={{ x: 20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -20, opacity: 0 }} style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                            <div style={{ background: '#f5f0ff', padding: '32px', borderRadius: '40px', marginBottom: '32px', color: 'var(--primary)' }}>
+                                <Smartphone size={80} strokeWidth={1.5} />
+                            </div>
+                            <h1 style={{ fontSize: '2.25rem', fontWeight: 800, marginBottom: '16px' }}>Offline UPI</h1>
+                            <p style={{ color: '#666', lineHeight: 1.6, fontSize: '1.05rem', padding: '0 10px' }}>
+                                Secure, token-based payments that work even without the internet.
+                            </p>
+                        </div>
+                        <div style={{ background: '#f9f9f9', padding: '20px', borderRadius: '24px', marginBottom: '32px', textAlign: 'left', display: 'flex', gap: '16px', alignItems: 'center' }}>
+                            <Info size={24} color="var(--primary)" style={{ flexShrink: 0 }} />
+                            <p style={{ fontSize: '0.8rem', color: '#666', lineHeight: 1.5 }}>
+                                We'll link your primary bank account using your registered mobile number via a secure SMS handshake.
+                            </p>
+                        </div>
+                        <button className="btn btn-primary" style={{ height: '60px', borderRadius: '18px', width: '100%', fontSize: '1.1rem' }} onClick={handleNext}>
+                            Get Started <ArrowRight size={20} />
+                        </button>
+                    </motion.div>
+                )}
 
-            <div className="card" style={{ textAlign: 'left', padding: '24px' }}>
-                <h3 style={{ marginBottom: '20px' }}>Securely login with your bank</h3>
+                {step === 2 && (
+                    <motion.div key="step2" initial={{ x: 20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -20, opacity: 0 }} style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                            <Landmark size={64} color="var(--secondary)" style={{ marginBottom: '32px' }} />
+                            <h2 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '32px' }}>Verify Mobile Number</h2>
+                            
+                            <div style={{ width: '100%', maxWidth: '300px' }}>
+                                <div style={{ marginBottom: '24px', textAlign: 'left' }}>
+                                    <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#aaa', marginLeft: '12px', marginBottom: '8px', display: 'block' }}>REGISTERED NUMBER</label>
+                                    <input 
+                                        type="tel" 
+                                        placeholder="+91 98765 43210" 
+                                        value={phone}
+                                        onChange={(e) => setPhone(e.target.value)}
+                                        style={{ width: '100%', height: '64px', borderRadius: '20px', border: '2px solid #eee', padding: '0 24px', fontSize: '1.25rem', fontWeight: 700, outline: 'none' }}
+                                    />
+                                </div>
+                                <div style={{ display: 'flex', gap: '12px', alignItems: 'center', justifyContent: 'center', color: '#00c853', fontWeight: 700, fontSize: '0.85rem' }}>
+                                    <ShieldCheck size={18} /> Bank Encrypted Connection
+                                </div>
+                            </div>
+                        </div>
+                        <button className="btn btn-primary" style={{ height: '60px', borderRadius: '18px', width: '100%', fontSize: '1.1rem' }} disabled={loading || phone.length < 10} onClick={handleNext}>
+                            {loading ? 'Verifying with Bank...' : 'Confirm & Link Account'}
+                        </button>
+                    </motion.div>
+                )}
 
-                <div
-                    onClick={() => handleSelectBank('State Bank of India')}
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '16px',
-                        padding: '16px',
-                        border: '1px solid #eee',
-                        borderRadius: '16px',
-                        marginBottom: '12px',
-                        cursor: 'pointer'
-                    }}
-                >
-                    <div style={{ background: '#e3f2fd', padding: '10px', borderRadius: '12px' }}>
-                        <Landmark size={24} color="#1565c0" />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                        <p style={{ fontWeight: 600 }}>State Bank of India</p>
-                        <p style={{ fontSize: '0.8rem', color: '#888' }}>Login via Secure OTP</p>
-                    </div>
-                </div>
+                {step === 3 && (
+                    <motion.div key="step3" initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                            <div style={{ background: '#e8f5e9', padding: '32px', borderRadius: '50%', marginBottom: '32px', color: '#2e7d32' }}>
+                                <CheckCircle2 size={90} strokeWidth={1} />
+                            </div>
+                            <h2 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '12px' }}>Account Linked!</h2>
+                            <p style={{ color: '#666', marginBottom: '32px', fontSize: '1.1rem' }}>
+                                Axis Bank account (XX8921) is now ready for offline payments.
+                            </p>
 
-                <div
-                    onClick={() => handleSelectBank('HDFC Bank')}
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '16px',
-                        padding: '16px',
-                        border: '1px solid #eee',
-                        borderRadius: '16px',
-                        cursor: 'pointer'
-                    }}
-                >
-                    <div style={{ background: '#f5f5f7', padding: '10px', borderRadius: '12px' }}>
-                        <Landmark size={24} color="#333" />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                        <p style={{ fontWeight: 600 }}>HDFC Bank</p>
-                        <p style={{ fontSize: '0.8rem', color: '#888' }}>Login via NetBanking</p>
-                    </div>
-                </div>
-            </div>
-
-            <div style={{ marginTop: '40px', display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center', color: 'var(--text-dim)', fontSize: '0.85rem' }}>
-                <CheckCircle2 size={16} color="var(--success)" />
-                NPCI Certified & Secure
-            </div>
+                            <div style={{ width: '100%', background: '#f5f0ff', padding: '24px', borderRadius: '24px', textAlign: 'left', border: '1px solid #e1d5ff' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+                                    <Zap size={20} color="#ffab00" fill="#ffab00" />
+                                    <p style={{ fontWeight: 800, color: 'var(--primary)', fontSize: '0.9rem' }}>INITIALIZING OFFLINE RESERVE</p>
+                                </div>
+                                <p style={{ fontSize: '0.85rem', color: '#666', lineHeight: 1.5 }}>
+                                    We've pre-authorized a ₹1,000 spending limit. This amount is now held in secure local tokens for use without the internet.
+                                </p>
+                            </div>
+                        </div>
+                        <button className="btn btn-primary" style={{ height: '60px', borderRadius: '18px', width: '100%', fontSize: '1.1rem' }} onClick={handleFinalize}>
+                            Take me to Dashboard
+                        </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </motion.div>
     );
 };
 
-export default OnboardingScreen;
+export default BankSignScreen;

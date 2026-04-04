@@ -1,98 +1,124 @@
 /**
- * Token Manager
- * Handles pre-loading, storage, and consumption of offline payment tokens.
+ * Token Manager — Pre-authorized offline payment tokens
+ * Hard cap: ₹1,000 per load. Each token is single-use with 7-day expiry.
+ * Tokens are now funded from the Wallet Balance.
+ * Features "Token Splitting" for partial payments.
  */
-
-const TOKEN_STORAGE_KEY = 'offline_payment_tokens';
-const USED_TOKEN_STORAGE_KEY = 'used_payment_tokens';
+const TOKEN_KEY = 'offline_payment_tokens';
 
 export const TokenManager = {
-  /**
-   * Generates a batch of signed-tokens (simulated).
-   * In a real app, these would come from the server while online.
-   */
-  async preloadTokens(amounts = [100, 200, 500, 200]) {
+  init() {
+    // Starts with 0 tokens by default on new devices (Removed auto-seeding).
+    if (localStorage.getItem(TOKEN_KEY) === null) {
+      localStorage.setItem(TOKEN_KEY, JSON.stringify([]));
+    }
+  },
+
+  async preloadTokens(amounts = []) {
     const tokens = amounts.map(amount => ({
-      id: `token_${Math.random().toString(36).substr(2, 9)}`,
+      id: `tok_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       amount,
       timestamp: Date.now(),
-      expiry: Date.now() + 1000 * 60 * 60 * 24 * 7, // 7 days
-      signature: btoa(`signed_${amount}_${Date.now()}`), // Mock signature
-      used: false
+      expiry: Date.now() + 7 * 24 * 60 * 60 * 1000,
+      signature: btoa(`signed_${amount}_${Date.now()}`),
+      used: false,
     }));
 
-    const existingTokens = this.getTokens();
-    const updatedTokens = [...existingTokens, ...tokens];
-    localStorage.setItem(TOKEN_STORAGE_KEY, JSON.stringify(updatedTokens));
+    const all = [...this.getTokens(), ...tokens];
+    localStorage.setItem(TOKEN_KEY, JSON.stringify(all));
     return tokens;
   },
 
-  /**
-   * Initializes the wallet with ₹1000 if it's the first run.
-   */
-  init() {
-    if (this.getTokens().length === 0) {
-      this.preloadTokens([500, 200, 200, 100]);
-    }
+  getTokens() {
+    try { return JSON.parse(localStorage.getItem(TOKEN_KEY) || '[]'); }
+    catch { return []; }
   },
 
-  getTokens() {
-    const data = localStorage.getItem(TOKEN_STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
+  getActiveTokens() {
+    return this.getTokens().filter(t => !t.used && t.expiry > Date.now());
   },
 
   getAvailableBalance() {
-    return this.getTokens()
-      .filter(t => !t.used && t.expiry > Date.now())
-      .reduce((sum, t) => sum + t.amount, 0);
+    return this.getActiveTokens().reduce((s, t) => s + t.amount, 0);
+  },
+
+  getMaxDailyLimit() { return 1000; }, // Virtual max per-load limit for display
+
+  getMaxBalance() { return 1000; }, // Max allowed in offline reserve at once
+
+  getTokenById(id) {
+    return this.getTokens().find(t => t.id === id) || null;
+  },
+
+  validateTokens(ids) {
+    return ids.every(id => {
+      const t = this.getTokenById(id);
+      return t && !t.used && t.expiry > Date.now();
+    });
   },
 
   /**
-   * Consumes tokens for a specific amount.
-   * Returns the tokens used if successful.
+   * consumeTokens — Robustly handles partial payments via Token Splitting
+   * If a token is larger than the needed payment, it is consumed and a 
+   * "change" token is added back to the pool.
    */
   consumeTokens(amount) {
-    const allTokens = this.getTokens();
-    const available = allTokens.filter(t => !t.used && t.expiry > Date.now());
+    const all = this.getTokens();
+    const available = all.filter(t => !t.used && t.expiry > Date.now());
+    if (this.getAvailableBalance() < amount) throw new Error('Insufficient offline tokens');
 
-    if (this.getAvailableBalance() < amount) {
-      throw new Error('Insufficient offline balance');
-    }
-
-    // Simple greedy algorithm to pick tokens
-    available.sort((a, b) => b.amount - a.amount);
-
-    let remaining = amount;
+    // Sort smallest to largest to minimize splitting if possible
+    available.sort((a, b) => a.amount - b.amount);
+    
+    let rem = amount;
     const selected = [];
+    const newTokens = [];
 
-    for (const token of available) {
-      if (remaining <= 0) break;
-      if (token.amount <= remaining) {
-        selected.push(token);
-        remaining -= token.amount;
-        token.used = true;
+    // Step 1: Use exact or smaller tokens first
+    for (const tok of available) {
+      if (rem <= 0) break;
+      if (tok.amount <= rem) { 
+        selected.push(tok); 
+        rem -= tok.amount; 
+        tok.used = true; 
       }
     }
 
-    // If we still have remaining, we might need to use a larger token and "give change" 
-    // (In a real system, tokens might be split or we just use a larger one).
-    // For this prototype, if we can't match exactly, we take the smallest token > remaining.
-    if (remaining > 0) {
-      const nextSmallest = available.find(t => !t.used && t.amount > remaining);
-      if (nextSmallest) {
-        nextSmallest.used = true;
-        selected.push(nextSmallest);
-        remaining = 0;
+    // Step 2: Use a partial larger token (Token Splitting)
+    if (rem > 0) {
+      const largeTok = available.find(t => !t.used && t.amount > rem);
+      if (largeTok) {
+        largeTok.used = true;
+        selected.push(largeTok);
+        
+        // CREATE CHANGE TOKEN
+        const changeAmount = largeTok.amount - rem;
+        const changeTok = {
+          id: `tok_change_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+          amount: changeAmount,
+          timestamp: Date.now(),
+          expiry: largeTok.expiry, // Maintain original expiry
+          signature: btoa(`signed_change_${changeAmount}_${Date.now()}`),
+          used: false,
+          isChange: true
+        };
+        
+        all.push(changeTok); // Add change back to pool
+        rem = 0;
       } else {
-        throw new Error('Could not find suitable tokens for exact amount');
+        throw new Error('Cannot match token amount (No sufficient tokens)');
       }
     }
 
-    localStorage.setItem(TOKEN_STORAGE_KEY, JSON.stringify(allTokens));
+    localStorage.setItem(TOKEN_KEY, JSON.stringify(all));
     return selected;
   },
 
-  clearTokens() {
-    localStorage.removeItem(TOKEN_STORAGE_KEY);
-  }
+  invalidateToken(id) {
+    const all = this.getTokens();
+    const t = all.find(x => x.id === id);
+    if (t) { t.used = true; localStorage.setItem(TOKEN_KEY, JSON.stringify(all)); }
+  },
+
+  clearTokens() { localStorage.removeItem(TOKEN_KEY); },
 };
