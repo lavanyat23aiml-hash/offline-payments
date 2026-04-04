@@ -23,11 +23,13 @@ import { SyncManager } from './logic/syncManager';
 
 // UI
 import { Wifi, WifiOff, RefreshCw, User, Wallet, Zap, ShieldCheck } from 'lucide-react';
+import { useLanguage } from './hooks/useLanguage';
 
 const AppContent = () => {
   const navigate = useNavigate();
   const { isOnline } = useConnectivity();
   const { validatePin } = useUser();
+  const { t } = useLanguage();
   
   const [walletBalance, setWalletBalance] = useState(0);
   const [offlineBalance, setOfflineBalance] = useState(0);
@@ -145,7 +147,7 @@ const AppContent = () => {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
             <div className={`connectivity-badge ${!isOnline ? 'offline' : ''}`} style={{ cursor: 'default' }}>
                 {!isOnline ? <WifiOff size={14} /> : <Wifi size={14} />}
-                <span>{!isOnline ? 'System Offline' : 'System Online'}</span>
+                <span>{t(isOnline ? 'system_online' : 'system_offline')}</span>
             </div>
             
             <div style={{ display: 'flex', gap: '10px' }}>
@@ -165,7 +167,7 @@ const AppContent = () => {
             {/* Wallet Balance (Online) */}
             <div style={{ flex: 1, background: 'rgba(24, 11, 46, 0.3)', padding: '12px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
                 <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.65rem', fontWeight: 700, marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <Wallet size={10} /> WALLET BALANCE
+                    <Wallet size={10} /> {t('wallet_balance')}
                 </p>
                 <h2 style={{ fontSize: '1.2rem', fontWeight: 800 }}>₹{walletBalance.toLocaleString()}</h2>
             </div>
@@ -173,7 +175,7 @@ const AppContent = () => {
             {/* Offline Token Balance */}
             <div style={{ flex: 1, background: 'rgba(255, 255, 255, 0.1)', padding: '12px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
                 <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.65rem', fontWeight: 700, marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <Zap size={10} fill="white" /> OFFLINE TOKENS
+                    <Zap size={10} fill="white" /> {t('offline_tokens')}
                 </p>
                 <h2 style={{ fontSize: '1.2rem', fontWeight: 800 }}>₹{offlineBalance.toLocaleString()}</h2>
             </div>
@@ -201,7 +203,7 @@ const AppContent = () => {
       {/* Persistence Notice */}
       {!isOnline && (
         <div style={{ background: '#ffebee', color: '#c62828', padding: '10px 16px', textAlign: 'center', fontSize: '0.75rem', fontWeight: 800, borderTop: '1px solid #ffcdd2', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-          <Zap size={14} fill="#c62828" /> SYSTEM OFFLINE: USING RESERVED TOKENS
+          <Zap size={14} fill="#c62828" /> {t('using_reserved_tokens')}
         </div>
       )}
     </>

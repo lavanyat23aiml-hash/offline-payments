@@ -8,10 +8,10 @@ import {
     Zap, 
     ShieldCheck, 
     Building2, 
-    Download,
     RefreshCw
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { useLanguage } from '../hooks/useLanguage';
 
 /**
  * SuccessScreen
@@ -21,6 +21,7 @@ const SuccessScreen = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { transaction } = location.state || {};
+    const { t } = useLanguage();
 
     useEffect(() => {
         if (!transaction) {
@@ -79,7 +80,7 @@ const SuccessScreen = () => {
             </motion.div>
 
             <h1 style={{ fontSize: '2.25rem', fontWeight: 800, color: 'var(--success)', marginBottom: '8px' }}>
-                ₹{transaction.amount} Paid
+                ₹{transaction.amount} {t('payment_paid')}
             </h1>
 
             {/* Offline/Online Logic Badge */}
@@ -92,7 +93,7 @@ const SuccessScreen = () => {
                     boxShadow: '0 8px 20px rgba(255, 171, 0, 0.4)',
                     letterSpacing: '0.5px'
                 }}>
-                    <Zap size={14} fill="white" /> OFFLINE RECEIPT GENERATED
+                    <Zap size={14} fill="white" /> {t('offline_receipt')}
                 </div>
             ) : (
                 <div style={{
@@ -102,13 +103,12 @@ const SuccessScreen = () => {
                     fontWeight: 700, fontSize: '0.85rem', marginBottom: '24px',
                     border: '1px solid #ddd'
                 }}>
-                    <ShieldCheck size={14} /> ONLINE PAYMENT VERIFIED
+                    <ShieldCheck size={14} /> {t('online_receipt')}
                 </div>
             )}
 
-            {/* Transaction ID Mini */}
             <p style={{ fontSize: '0.72rem', color: '#999', marginBottom: '24px', letterSpacing: '0.5px' }}>
-                REFERENCE: {transaction.id}
+                {t('reference')}: {transaction.id}
             </p>
 
             {/* Merchant Trust Information (Crucial Feature) */}
@@ -132,7 +132,7 @@ const SuccessScreen = () => {
                         <h4 style={{ fontSize: '1rem', fontWeight: 800 }}>Merchant Notification Sent</h4>
                     </div>
                     <p style={{ fontSize: '0.85rem', opacity: 0.9, lineHeight: 1.6 }}>
-                        "Payment received as bank-authorized tokens issued by Demo Bank. These tokens are cryptographically signed and guarantee settlement upon sync."
+                        "{t('payment_trust_msg')}"
                     </p>
                 </motion.div>
             )}
@@ -146,15 +146,15 @@ const SuccessScreen = () => {
                 border: `1px solid ${isOffline ? '#f9eb9d' : '#eee'}`
             }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '14px' }}>
-                    <span style={{ fontSize: '0.85rem', color: '#888' }}>Recipient</span>
+                    <span style={{ fontSize: '0.85rem', color: '#888' }}>{t('recipient')}</span>
                     <span style={{ fontWeight: 700 }}>{transaction.merchantName}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '14px' }}>
-                    <span style={{ fontSize: '0.85rem', color: '#888' }}>Account</span>
+                    <span style={{ fontSize: '0.85rem', color: '#888' }}>{t('account')}</span>
                     <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>{transaction.bankName}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '14px' }}>
-                    <span style={{ fontSize: '0.85rem', color: '#888' }}>Mode</span>
+                    <span style={{ fontSize: '0.85rem', color: '#888' }}>{t('mode')}</span>
                     <span style={{ fontWeight: 700, color: isOffline ? '#e65100' : 'var(--success)' }}>
                         {isOffline ? 'Offline Token' : 'Direct Bank'}
                     </span>
@@ -162,7 +162,7 @@ const SuccessScreen = () => {
 
                 {isOffline && shortTokens && shortTokens.length > 0 && (
                     <div style={{ borderTop: '1px dashed #ddd', paddingTop: '14px', marginTop: '4px' }}>
-                        <p style={{ fontSize: '0.72rem', color: '#999', marginBottom: '8px', fontWeight: 700 }}>TOKEN AUDIT TRAIL</p>
+                        <p style={{ fontSize: '0.72rem', color: '#999', marginBottom: '8px', fontWeight: 700 }}>{t('token_audit_trail')}</p>
                         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                             {shortTokens.map((t, idx) => (
                                 <span key={idx} style={{ 
@@ -188,7 +188,7 @@ const SuccessScreen = () => {
                     color: '#e65100', fontSize: '0.85rem', fontWeight: 700,
                     marginBottom: '24px'
                 }}>
-                    <RefreshCw size={16} /> Auto-Sync Pending
+                    <RefreshCw size={16} /> {t('auto_sync_pending')}
                 </div>
             )}
 
@@ -202,7 +202,7 @@ const SuccessScreen = () => {
                     style={{ padding: '16px', borderRadius: '16px', fontWeight: 800 }}
                     onClick={() => navigate('/')}
                 >
-                    Done <ArrowRight size={20} />
+                    {t('done')} <ArrowRight size={20} />
                 </button>
             </div>
 

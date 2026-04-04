@@ -12,10 +12,10 @@ import {
     Zap,
     ShieldCheck
 } from 'lucide-react';
-import { useUser } from '../hooks/useUser';
 import { TokenManager } from '../logic/tokenManager';
 import { SyncManager } from '../logic/syncManager';
 import { FraudDetector } from '../logic/fraudDetector';
+import { useLanguage } from '../hooks/useLanguage';
 
 const PROCESSING_STEPS = [
   { label: 'Validating Device Token...', duration: 600 },
@@ -34,6 +34,7 @@ const PinScreen = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { validatePin } = useUser();
+    const { t } = useLanguage();
     
     const { 
         amount, 
@@ -249,7 +250,7 @@ const PinScreen = () => {
             </div>
 
             <div style={{ textAlign: 'center', flex: 1 }}>
-                <p className="text-label" style={{ marginBottom: '8px', fontWeight: 600 }}>Paying</p>
+                <p className="text-label" style={{ marginBottom: '8px', fontWeight: 600 }}>{t('paying')}</p>
                 <h1 style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--primary)', marginBottom: '8px' }}>₹{amount}</h1>
                 <p style={{ color: '#444', marginBottom: '32px', fontWeight: 700, fontSize: '0.95rem' }}>{merchantName}</p>
 
@@ -263,7 +264,7 @@ const PinScreen = () => {
                     border: `1px solid ${type === 'offline' ? '#ffcc80' : '#a5d6a7'}`
                 }}>
                     {type === 'offline' ? <Zap size={14} fill="#e65100" /> : <ShieldCheck size={14} />}
-                    {type === 'offline' ? 'OFFLINE TOKEN SESSION' : 'ONLINE BANK SESSION'}
+                    {type === 'offline' ? t('offline_token_session') : t('online_bank_session')}
                 </div>
 
                 {/* Input Dots */}
@@ -288,7 +289,7 @@ const PinScreen = () => {
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                             style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center', color: 'var(--error)', marginBottom: '16px' }}>
                             <Timer size={18} />
-                            <span style={{ fontWeight: 800, fontSize: '0.9rem' }}>Secure Lockout: {lockRemaining}s</span>
+                            <span style={{ fontWeight: 800, fontSize: '0.9rem' }}>{t('secure_lockout')}: {lockRemaining}s</span>
                         </motion.div>
                     ) : error ? (
                         <motion.p initial={{ x: -10 }} animate={{ x: 0 }} exit={{ opacity: 0 }}
@@ -299,7 +300,7 @@ const PinScreen = () => {
                 </AnimatePresence>
 
                 <p style={{ fontSize: '0.72rem', color: '#aaa', fontWeight: 500 }}>
-                    Security Tip: PIN is encrypted and stored locally. Default: 1234
+                    {t('security_tip')}
                 </p>
             </div>
 
@@ -336,7 +337,7 @@ const PinScreen = () => {
                 disabled={pin.length < 4 || isLocked}
                 onClick={handleConfirm}
             >
-                Confirm Secure Payment
+                {t('confirm_payment')}
             </button>
         </motion.div>
     );

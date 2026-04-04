@@ -12,6 +12,7 @@ import {
 import { useConnectivity } from '../hooks/useConnectivity';
 import { TokenManager } from '../logic/tokenManager';
 import { SyncManager } from '../logic/syncManager';
+import { useLanguage } from '../hooks/useLanguage';
 
 /**
  * AmountScreen
@@ -22,6 +23,7 @@ const AmountScreen = ({ updateBalance }) => {
     const { merchantId } = useParams();
     const location = useLocation();
     const { isOnline } = useConnectivity();
+    const { t } = useLanguage();
     
     const { merchantName, merchantUpi, merchantBank } = location.state || { 
         merchantName: 'Merchant',
@@ -105,11 +107,11 @@ const AmountScreen = ({ updateBalance }) => {
             <div style={{ textAlign: 'center', marginBottom: '32px' }}>
                 {!isOnline ? (
                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#ffe0b2', color: '#e65100', padding: '10px 20px', borderRadius: '24px', fontWeight: 800, fontSize: '0.8rem', border: '1px solid #ffcc80' }}>
-                        <Zap size={14} fill="#e65100" /> OFFLINE TOKENS: ₹{currentTokens.toLocaleString()}
+                        <Zap size={14} fill="#e65100" /> {t('offline_tokens')}: ₹{currentTokens.toLocaleString()}
                     </div>
                 ) : (
                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#e1f5fe', color: '#0288d1', padding: '10px 20px', borderRadius: '24px', fontWeight: 800, fontSize: '0.8rem', border: '1px solid #b3e5fc' }}>
-                        <Wallet size={14} /> WALLET BALANCE: ₹{currentWallet.toLocaleString()}
+                        <Wallet size={14} /> {t('wallet_balance')}: ₹{currentWallet.toLocaleString()}
                     </div>
                 )}
             </div>
@@ -151,7 +153,7 @@ const AmountScreen = ({ updateBalance }) => {
                 disabled={!amount || Number(amount) <= 0}
                 onClick={handleProceed}
             >
-                {isOnline ? 'Online Pay' : 'Offline Pay via Token'} ₹{amount || '0'}
+                {t('payment_paid')} ₹{amount || '0'}
             </button>
         </motion.div>
     );

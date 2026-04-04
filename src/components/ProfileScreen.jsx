@@ -15,11 +15,13 @@ import {
     Smartphone,
     CreditCard,
     CheckCircle,
-    Building2
+    Building2,
+    Globe
 } from 'lucide-react';
 import { useUser } from '../hooks/useUser';
 import { TokenManager } from '../logic/tokenManager';
 import { FraudDetector } from '../logic/fraudDetector';
+import { useLanguage } from '../hooks/useLanguage';
 
 /**
  * ProfileScreen
@@ -29,6 +31,7 @@ import { FraudDetector } from '../logic/fraudDetector';
 const ProfileScreen = () => {
     const navigate = useNavigate();
     const { user, setUser } = useUser();
+    const { t, language, setLanguage } = useLanguage();
     const [copied, setCopied] = useState(false);
 
     const balance = TokenManager.getAvailableBalance();
@@ -66,7 +69,7 @@ const ProfileScreen = () => {
                 <button onClick={() => navigate(-1)} className="btn" style={{ padding: '8px', background: 'transparent' }}>
                     <ArrowLeft size={24} />
                 </button>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 800 }}>Profile & Security</h2>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 800 }}>{t('profile_security')}</h2>
             </div>
 
             {/* Identity & QR Card */}
@@ -138,7 +141,7 @@ const ProfileScreen = () => {
             {/* Bank Details Section */}
             <div style={{ marginBottom: '28px' }}>
                 <h3 style={{ fontSize: '0.95rem', fontWeight: 800, color: '#444', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Landmark size={18} color="var(--primary)" /> PRIMARY BANK ACCOUNT
+                    <Landmark size={18} color="var(--primary)" /> {t('primary_bank')}
                 </h3>
                 <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '16px', border: '1.5px solid #eee' }}>
                     <div style={{ background: '#f5f5f7', padding: '14px', borderRadius: '16px' }}>
@@ -156,13 +159,13 @@ const ProfileScreen = () => {
 
             {/* Offline Info Section */}
             <div style={{ marginBottom: '28px' }}>
-                <h3 style={{ fontSize: '0.95rem', fontWeight: 800, color: '#444', marginBottom: '16px' }}>OFFLINE PROTOCOL</h3>
+                <h3 style={{ fontSize: '0.95rem', fontWeight: 800, color: '#444', marginBottom: '16px' }}>{t('offline_protocol')}</h3>
                 
                 <div className="card" style={{ marginBottom: '12px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <Zap size={16} color="#ffab00" fill="#ffab00" />
-                            <span style={{ fontWeight: 800, fontSize: '0.85rem' }}>Active Offline Tokens</span>
+                            <span style={{ fontWeight: 800, fontSize: '0.85rem' }}>{t('active_offline_tokens')}</span>
                         </div>
                         <span style={{ fontWeight: 900, color: 'var(--primary)', fontSize: '1.2rem' }}>₹{balance}</span>
                     </div>
@@ -174,20 +177,50 @@ const ProfileScreen = () => {
 
             {/* Security Config */}
             <div>
-                <h3 style={{ fontSize: '0.95rem', fontWeight: 800, color: '#444', marginBottom: '16px' }}>SECURITY SETTINGS</h3>
+                <h3 style={{ fontSize: '0.95rem', fontWeight: 800, color: '#444', marginBottom: '16px' }}>{t('security_settings')}</h3>
                 <div className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
                         <div style={{ background: '#f5f5f7', padding: '12px', borderRadius: '12px' }}>
                             <Smartphone size={20} color="var(--primary)" />
                         </div>
                         <div>
-                            <p style={{ fontWeight: 800, fontSize: '0.9rem' }}>Secure UPI PIN</p>
-                            <p style={{ fontSize: '0.72rem', color: '#888', fontWeight: 600 }}>Authorization required for all transfers</p>
+                            <p style={{ fontWeight: 800, fontSize: '0.9rem' }}>{t('secure_upi_pin')}</p>
+                            <p style={{ fontSize: '0.72rem', color: '#888', fontWeight: 600 }}>{t('auth_required')}</p>
                         </div>
                     </div>
                     <button className="btn btn-secondary" style={{ padding: '8px 14px', fontSize: '0.75rem', fontWeight: 800 }} onClick={handleChangePin}>
-                        CHANGE
+                        {t('change_btn')}
                     </button>
+                </div>
+            </div>
+
+            {/* Language Selector */}
+            <div style={{ marginTop: '28px' }}>
+                <h3 style={{ fontSize: '0.95rem', fontWeight: 800, color: '#444', marginBottom: '16px' }}>{t('app_language')}</h3>
+                <div className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px' }}>
+                    <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
+                        <div style={{ background: '#f5f5f7', padding: '12px', borderRadius: '12px' }}>
+                            <Globe size={20} color="var(--primary)" />
+                        </div>
+                        <div>
+                            <select 
+                                value={language} 
+                                onChange={(e) => setLanguage(e.target.value)}
+                                style={{
+                                    border: 'none', background: 'transparent', 
+                                    fontWeight: 800, fontSize: '0.95rem',
+                                    outline: 'none', color: '#222', cursor: 'pointer',
+                                    padding: 0, margin: 0, marginBottom: '2px'
+                                }}
+                            >
+                                <option value="en">English</option>
+                                <option value="hi">हिंदी (Hindi)</option>
+                                <option value="kn">ಕನ್ನಡ (Kannada)</option>
+                                <option value="te">తెలుగు (Telugu)</option>
+                            </select>
+                            <p style={{ fontSize: '0.72rem', color: '#888', fontWeight: 600 }}>Translates all standard layouts instantly</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 

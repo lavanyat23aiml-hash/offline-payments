@@ -14,6 +14,7 @@ import {
     Wifi,
     WifiOff
 } from 'lucide-react';
+import { useLanguage } from '../hooks/useLanguage';
 
 /**
  * HomeScreen
@@ -22,12 +23,13 @@ import {
  */
 const HomeScreen = ({ balance, walletBalance, handlePreload, isOnline, syncStats }) => {
     const navigate = useNavigate();
+    const { t } = useLanguage();
 
     const quickActions = [
-        { icon: <QrCode size={26} />, label: 'Scan QR', path: '/scan', color: '#673ab7' },
-        { icon: <Building2 size={26} />, label: 'To Bank', path: '/bank-transfer', color: '#1a73e8' },
-        { icon: <Smartphone size={26} />, label: 'UPI ID', path: '/transfer', color: '#2e7d32' },
-        { icon: <History size={26} />, label: 'History', path: '/history', color: '#ef6c00' },
+        { icon: <QrCode size={26} />, label: t('scan_qr'), path: '/scan', color: '#673ab7' },
+        { icon: <Building2 size={26} />, label: t('to_bank'), path: '/bank-transfer', color: '#1a73e8' },
+        { icon: <Smartphone size={26} />, label: t('upi_id'), path: '/transfer', color: '#2e7d32' },
+        { icon: <History size={26} />, label: t('history'), path: '/history', color: '#ef6c00' },
     ];
 
     const quickMerchants = [
@@ -59,7 +61,7 @@ const HomeScreen = ({ balance, walletBalance, handlePreload, isOnline, syncStats
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     {isOnline ? <Wifi size={20} /> : <WifiOff size={20} />}
                     <span style={{ fontSize: '0.85rem', fontWeight: 800 }}>
-                        SYSTEM {isOnline ? 'ONLINE' : 'OFFLINE'}
+                        {t(isOnline ? 'system_online' : 'system_offline')}
                     </span>
                 </div>
                 <div style={{ 
@@ -109,13 +111,13 @@ const HomeScreen = ({ balance, walletBalance, handlePreload, isOnline, syncStats
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
                 <div className="card" style={{ padding: '16px', background: 'linear-gradient(135deg, #673ab7 0%, #512da8 100%)', color: 'white', border: 'none' }}>
                    <p style={{ fontSize: '0.65rem', fontWeight: 800, opacity: 0.8, marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                       <Wallet size={12} /> WALLET BALANCE
+                       <Wallet size={12} /> {t('wallet_balance')}
                    </p>
                    <h2 style={{ fontSize: '1.4rem', fontWeight: 800 }}>₹{walletBalance.toLocaleString()}</h2>
                 </div>
                 <div className="card" style={{ padding: '16px', background: 'white', border: '1px solid #e1d5ff' }}>
                    <p style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--primary)', opacity: 0.8, marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                       <Zap size={12} fill="var(--primary)" /> OFFLINE TOKENS
+                       <Zap size={12} fill="var(--primary)" /> {t('offline_tokens')}
                    </p>
                    <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--primary)' }}>₹{balance.toLocaleString()}</h2>
                 </div>
@@ -132,7 +134,7 @@ const HomeScreen = ({ balance, walletBalance, handlePreload, isOnline, syncStats
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
                             <Zap size={16} color="#ffab00" fill="#ffab00" />
                             <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#e65100', letterSpacing: '0.5px' }}>
-                                TOKEN RESERVE LIMIT
+                                {t('token_reserve_limit')}
                             </span>
                         </div>
                         <h2 style={{ fontSize: '1.5rem', fontWeight: 800 }}>₹{balance.toLocaleString()} / ₹1,000</h2>
@@ -142,13 +144,13 @@ const HomeScreen = ({ balance, walletBalance, handlePreload, isOnline, syncStats
                         className="btn btn-primary"
                         style={{ padding: '10px 16px', fontSize: '0.75rem', borderRadius: '12px', fontWeight: 800 }}
                     >
-                        <PlusCircle size={14} /> AUTHORIZE
+                        <PlusCircle size={14} /> {t('authorize_btn')}
                     </button>
                 </div>
                 
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '0.7rem', color: '#888', fontWeight: 700 }}>Reserve Capacity: {((balance/1000)*100).toFixed(0)}%</span>
-                    <span style={{ fontSize: '0.7rem', color: '#888', fontWeight: 700 }}>Funding: Wallet</span>
+                    <span style={{ fontSize: '0.7rem', color: '#888', fontWeight: 700 }}>{t('reserve_capacity')}: {((balance/1000)*100).toFixed(0)}%</span>
+                    <span style={{ fontSize: '0.7rem', color: '#888', fontWeight: 700 }}>{t('funding_wallet')}</span>
                 </div>
                 <div style={{ background: '#eee', height: '8px', borderRadius: '4px', overflow: 'hidden' }}>
                     <motion.div 
@@ -188,8 +190,8 @@ const HomeScreen = ({ balance, walletBalance, handlePreload, isOnline, syncStats
             {/* Quick Pay Merchants */}
             <div style={{ marginBottom: '20px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                    <h3 style={{ fontSize: '1rem', fontWeight: 800 }}>Quick Pay Merchants</h3>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: 800 }}>SEE ALL</span>
+                    <h3 style={{ fontSize: '1rem', fontWeight: 800 }}>{t('quick_pay_merchants')}</h3>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: 800 }}>{t('see_all')}</span>
                 </div>
                 
                 <div style={{ display: 'flex', gap: '16px', overflowX: 'auto', paddingBottom: '12px' }}>
@@ -223,9 +225,9 @@ const HomeScreen = ({ balance, walletBalance, handlePreload, isOnline, syncStats
                     <ShieldCheck size={28} />
                 </div>
                 <div>
-                    <h4 style={{ fontSize: '0.9rem', fontWeight: 800, marginBottom: '2px' }}>UPI Offline Vault</h4>
+                    <h4 style={{ fontSize: '0.9rem', fontWeight: 800, marginBottom: '2px' }}>{t('upi_offline_vault')}</h4>
                     <p style={{ fontSize: '0.72rem', opacity: 0.8, lineHeight: 1.4 }}>
-                        Your payments are backed by pre-authorized bank tokens. Safe & Instant.
+                        {t('vault_desc')}
                     </p>
                 </div>
             </div>

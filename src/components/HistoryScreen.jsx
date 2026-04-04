@@ -14,10 +14,10 @@ import {
     History as HistoryIcon,
     ArrowUpRight,
     ArrowDownLeft,
-    Wifi,
     WifiOff
 } from 'lucide-react';
 import { SyncManager } from '../logic/syncManager';
+import { useLanguage } from '../hooks/useLanguage';
 
 /**
  * HistoryScreen
@@ -28,6 +28,7 @@ const HistoryScreen = () => {
     const navigate = useNavigate();
     const [filter, setFilter] = useState('All');
     const [search, setSearch] = useState('');
+    const { t } = useLanguage();
     
     const transactions = SyncManager.getAllTransactions();
     const stats = SyncManager.getStats();
@@ -52,7 +53,7 @@ const HistoryScreen = () => {
                     <ArrowLeft size={24} />
                 </button>
                 <div style={{ flex: 1 }}>
-                    <h2 style={{ fontSize: '1.25rem', fontWeight: 800 }}>Transaction History</h2>
+                    <h2 style={{ fontSize: '1.25rem', fontWeight: 800 }}>{t('history')}</h2>
                     <p style={{ fontSize: '0.75rem', color: '#888' }}>Immutable record of all payments</p>
                 </div>
             </div>
