@@ -8,7 +8,8 @@ import {
     Zap, 
     ShieldCheck, 
     Building2, 
-    RefreshCw
+    RefreshCw,
+    Download
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useLanguage } from '../hooks/useLanguage';

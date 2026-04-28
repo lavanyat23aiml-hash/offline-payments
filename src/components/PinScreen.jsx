@@ -15,6 +15,7 @@ import {
 import { TokenManager } from '../logic/tokenManager';
 import { SyncManager } from '../logic/syncManager';
 import { FraudDetector } from '../logic/fraudDetector';
+import { useUser } from '../hooks/useUser';
 import { useLanguage } from '../hooks/useLanguage';
 
 const PROCESSING_STEPS = [

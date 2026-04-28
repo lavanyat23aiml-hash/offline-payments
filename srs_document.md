@@ -5,93 +5,86 @@
 
 ## 1. Introduction
 ### 1.1 Purpose
-This document specifies the software requirements for the **Offline UPI Payment Simulator**, a high-fidelity proof-of-concept for offline bank-authorized digital payments. It covers the dual-balance management, automatic connectivity synchronization, and token-based settlement logic.
+This document specifies the software requirements for the **Offline UPI Payment Simulator**, a high-fidelity proof-of-concept for offline bank-authorized digital payments. It covers the dual-balance management, automatic connectivity synchronization, simulated bank authorities, internationalization (i18n), and a context-aware Secure AI Agent.
 
 ### 1.2 Scope
-The system simulates a mobile UPI application capable of transitioning seamlessly between Online and Offline environments. It uses a hardware bridge to control physical Wi-Fi adapters and implements a local "Token Reserve" system funded by a central "Online Wallet."
+The system simulates a mobile UPI application capable of transitioning seamlessly between Online and Offline environments. It uses a hardware bridge to control physical Wi-Fi adapters, implements a local "Token Reserve" system funded by a central "Online Wallet", dynamically serves multiple languages, and leverages advanced NLP logic for non-intrusive voice/text assistance.
 
 ### 1.3 Definitions & Acronyms
 - **UPI**: Unified Payments Interface.
-- **Offline Token**: A pre-authorized digital asset representing a specific monetary value, signed by a bank (simulated).
+- **Offline Token**: A pre-authorized digital asset representing a specific monetary value, cryptographically signed by a Simulated Bank.
 - **Wallet Balance**: The central online fund source (Simulated as ₹10,000).
-- **Bridge Server**: A local Node.js server used to interface with system hardware.
 - **Token Splitting**: The logic used to break a larger token into a payment and a "Change Token."
+- **NLP**: Natural Language Processing for intent and entity extraction.
+- **PII**: Personally Identifiable Information (Mobile numbers, UPI IDs, Account numbers).
 
 ---
 
 ## 2. Overall Description
 ### 2.1 Product Perspective
-The application consists of a **React Frontend**, a **Node.js Hardware Bridge**, and **PowerShell automation scripts**. It operates strictly in a local-first environment, with a heavy emphasis on "Gold Build" aesthetics (Premium UI/UX).
+The application consists of a **React Frontend**, a local **Node.js Hardware Bridge**, and dynamic structural logic. It operates securely in a local-first browser environment using memory and `localStorage` to simulate a robust fin-tech environment.
 
-### 2.2 System Functions
-1. **Automatic Connectivity**: Detects system internet status and updates application state (Online/Offline) without user intervention.
-2. **Dual-Balance Architecture**: Separates Online Wallet funds from Offline Token reserves.
-3. **Wallet-to-Token Transfer**: Allows users to "Authorize" funds from the Wallet to be converted into Offline Tokens.
-4. **Offline Payment Execution**: Conducts payments in Airplane/No-Wi-Fi mode using pre-authorized tokens.
-5. **Token Splitting (Change Tokens)**: Automatically generates "Change" tokens if a pre-authorized token is larger than the payment amount.
-6. **Immutable Transaction History**: Maintains a non-deletable record of all payments with clear Online/Offline indicators.
+### 2.2 Core System Functions
+1. **Hardware Connectivity Synchronization**: Detects system internet status and toggles physical Wi-Fi adapters (`netsh wlan`) to enforce offline conditions.
+2. **Dual-Balance Architecture**: Separates Online Wallet funds from Offline Token reserves, tracking deductions contextually.
+3. **Simulated Bank Authority**: Emulates a real-world central bank that cryptographically issues, signs, and authorizes Offline Tokens.
+4. **Token Splitting (Change Tokens)**: Automatically generates "Change" tokens if a pre-authorized token is larger than the payment amount.
+5. **Multi-Language Support (i18n)**: Seamless language localization serving English, Hindi, Kannada, and Telugu dynamically without reloads via React Context.
+6. **Secure AI Interface**: Context-aware Chatbot for querying History, routing Navigation, and prepping Payment intents via Interactive Forms or Voice (when online boundaries allow).
 
 ### 2.3 User Classes & Characteristics
-- **Demo User**: Requires a seamless experience with zero lag, clear status indicators (Green/Red), and realistic interaction flows (manual QR scanning).
+- **Demo User**: Requires a seamless experience, minimal latency, clear feedback on network states (Green/Red alerts), and robust accessibility tools (multi-language and voice assistance).
 
 ### 2.4 Design & Implementation Constraints
-- **Persistence**: All data must persist in `localStorage` across page refreshes.
-- **Hardware Integration**: Requires a local Node server on port 3001 with Administrator privileges.
+- **Isolation**: The AI Assistant MUST operate as a sandboxed UX wrapper. It cannot perform monetary transactions autonomously; it must defer to `PinScreen`.
+- **Persistence**: Data must persist locally; the system requires no external database.
 
 ---
 
 ## 3. Functional Requirements
-### 3.1 Connectivity Synchronization (SRS-F01)
-- **Automatic Detection**: The system MUST use `navigator.onLine` and browser events (`online`, `offline`) to update the app status globally.
-- **Visual Feedback**: Dashboard MUST show **GREEN** for Online and **RED** for Offline.
-- **Hardware Bridge**: On status change, the system MUST call the Bridge API (`/toggle-hotspot`) to physically toggle the Wi-Fi adapter.
 
-### 3.2 Dual Balance Management (SRS-F02)
-- **Initial State**: The system MUST start with **₹10,000 in the Wallet** and **₹0 in Offline Tokens**.
-- **Wallet Fund Source**: Online transactions MUST deduct directly from the Wallet.
-- **Token Fund Source**: Offline transactions MUST deduct directly from the Token Reserve.
-- **Balance Refinement**: Wallet balance is ONLY primary. Offline tokens are secondary assets.
+### 3.1 Network & Dual Balance (SRS-F01)
+- **Automatic Detection**: Evaluates `navigator.onLine` and maps states globally to adjust UX and logical bounds.
+- **Primary Deduction**: Online transactions MUST deduct dynamically from Wallet `SyncManager`.
+- **Secondary Deduction**: Offline transactions MUST consume signed tokens via `TokenManager`.
 
-### 3.3 Wallet-to-Token Transfer (SRS-F03)
-- **User Prompt**: The user MUST enter an amount to transfer from Wallet to Tokens.
-- **Load Limit**: Authorization MUST be restricted to **₹1,000** per request.
-- **Validation**: MUST check if `amount <= 1000` AND `amount <= walletBalance`.
-- **Deduction**: On success, the amount MUST be deducted from the Wallet and added to the Token Reserve.
-- **PIN Authorization**: Transfers MUST require the user's 4-digit UPI PIN.
+### 3.2 Simulated Bank Authorization (SRS-F02)
+- **Fund Locking**: Moving Wallet funds into Offline Tokens MUST deduct the primary balance.
+- **Signatures**: The Bank MUST append cryptographic guarantees (via Web Crypto API) ensuring the token structure is tamper-proof natively.
 
-### 3.4 Token Splitting / Change (SRS-F04)
-- **Requirement**: If an offline payment amount is less than the smallest available single token, the system MUST "split" the token.
-- **Logic**:
-  - Consume the larger token (mark as `used`).
-  - Create a **new "Change Token"** for the remainder (`TokenAmount - PaymentAmount`).
-  - Inherit the original token's expiry date.
+### 3.3 Dynamic Internationalization (SRS-F03)
+- **Translational Coverage**: High-visibility strings across `HomeScreen`, `PinScreen`, `SuccessScreen`, and AI models MUST be dynamically evaluated against a centralized `translations.js` map.
+- **Session Continuity**: Language changes MUST be persisted and applied instantaneously.
 
-### 3.5 QR Merchant Interaction (SRS-F05)
-- **Manual Control**: The scanner MUST NOT auto-process. It MUST require manual **"Scan Now"** or **"Upload QR"** interaction.
-- **Pre-Payment Confirmation**: Users MUST see merchant details (UPI ID, Bank Name) BEFORE entering the payment amount.
+### 3.4 Secure AI Assistant Engine (SRS-F04)
+- **NLP Regex Extraction**: Text ingestion MUST extract target IDs separately (distinguishing 10-digit mobile numbers from `user@bank` UPI formats) and isolate integers specifically attached to currency-phrases.
+- **Guarded GUI Generation**: AI parses payment intents and creates an interactive UI payload (The Confirmation Card) requesting User confirmation before bridging out to PIN validation.
+- **Voice Boundary Check**: If Web Speech API is invoked while `netsh` bridge or `navigator` throws offline status, it MUST capture the error softly to prevent system crash, displaying an offline-voice-degradation alert.
+- **PII Masking**: Chat logs MUST sanitize output records (`9876543210 -> ******3210` and `user@bank -> us****@bank`).
+
+### 3.5 QR & Payment Logic (SRS-F05)
+- **Manual Control**: QR Scanner requires manual interaction to initiate payment flow.
+- **State Inference**: Success Receipts MUST log whether the transaction completed via Bank APIs (Online) or Cryptographic Token deductions (Offline) prominently.
 
 ---
 
 ## 4. Non-Functional Requirements
 ### 4.1 Security
-- **Local PIN Entry**: 4-digit PIN required for all transfers and payments.
-- **Fraud Detection**: 
-  - Max ₹10,000 single transaction.
-  - Rate limiting (Max 10 TX per minute).
-  - Daily spend tracking.
+- **Local PIN Entry**: Required physical confirmation logic for both Online Wallet deductions and Offline Token consumption.
+- **Fraud Engine Boundary**: NLP Engine flags unusually high transfers (> ₹5000) or Duplicate amounts within a 5-minute window directly within the Chat Interface before processing.
 
 ### 4.2 Usability (Aesthetics)
-- **Premium Design**: Implementation MUST follow modern web design standards (glassmorphism, vibrant colors, curated Google Fonts).
-- **Responsiveness**: Smooth framer-motion transitions between screens.
+- **Premium Design**: Heavy glassmorphism, responsive shadow scaling, contextual gradients, and dynamic FAB (Floating Action Block) states to enforce "Gold Build" fin-tech standards.
 
-### 4.3 Reliability
-- **Sync Recovery**: Transactions conducted offline MUST be stored with a "Pending" status and auto-sync to "Completed" when connectivity is restored.
-- **Immutability**: Users MUST NOT have the ability to delete history items or reset balances once initialized.
+### 4.3 Reliability & Immutability
+- **Auto-Sync Queuing**: Offline payments MUST route to `Pending` queues, auto-resolving to `Completed` once the bridge restores Wi-Fi connectivity seamlessly.
+- Transactions are immutable; deletion capabilities explicitly scrubbed.
 
 ---
 
-## 5. System Architecture (Technical Mapping)
-- **Store**: `localStorage` (Items: `upi_wallet_balance`, `offline_payment_tokens`, `offline_transactions`).
-- **Hooks**: `useConnectivity.js` (State sync).
-- **Logic**: `syncManager.js` (TX lifecycle), `tokenManager.js` (Token lifecycle), `fraudDetector.js` (Safety rules).
-- **External**: `bridge.js` (Hardware server).
+## 5. Technical Mapping
+- **App Wrapper**: Vite / React.js / Framer Motion
+- **Persistence Layer**: `localStorage` -> `upi_wallet_balance`, `app_language`, `offline_transactions`
+- **NLP / Brain**: `logic/nlpEngine.js`, native regex, `Web Speech API`
+- **Bank Operations**: `logic/bankServer.js`, `logic/tokenManager.js`
+- **Network Hooks**: `hooks/useConnectivity.js`, Server: `bridge.js` (PowerShell API)

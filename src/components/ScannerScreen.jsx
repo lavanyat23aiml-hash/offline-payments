@@ -9,7 +9,8 @@ import {
     CheckCircle,
     ArrowRight,
     Camera,
-    Upload
+    Upload,
+    RefreshCw
 } from 'lucide-react';
 
 /**

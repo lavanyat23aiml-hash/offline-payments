@@ -14,7 +14,8 @@ import {
     History as HistoryIcon,
     ArrowUpRight,
     ArrowDownLeft,
-    WifiOff
+    WifiOff,
+    Wifi
 } from 'lucide-react';
 import { SyncManager } from '../logic/syncManager';
 import { useLanguage } from '../hooks/useLanguage';

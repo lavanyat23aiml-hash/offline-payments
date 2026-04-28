@@ -1,18 +1,19 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-    QrCode, 
-    Smartphone, 
-    History, 
-    Zap, 
-    ShieldCheck, 
+import {
+    QrCode,
+    Smartphone,
+    History,
+    Zap,
+    ShieldCheck,
     ArrowRight,
     Building2,
     PlusCircle,
     Wallet,
     Wifi,
-    WifiOff
+    WifiOff,
+    RefreshCw
 } from 'lucide-react';
 import { useLanguage } from '../hooks/useLanguage';
 
@@ -28,7 +29,7 @@ const HomeScreen = ({ balance, walletBalance, handlePreload, isOnline, syncStats
     const quickActions = [
         { icon: <QrCode size={26} />, label: t('scan_qr'), path: '/scan', color: '#673ab7' },
         { icon: <Building2 size={26} />, label: t('to_bank'), path: '/bank-transfer', color: '#1a73e8' },
-        { icon: <Smartphone size={26} />, label: t('upi_id'), path: '/transfer', color: '#2e7d32' },
+        { icon: <Smartphone size={26} />, label: t('contacts'), path: '/transfer', color: '#2e7d32' },
         { icon: <History size={26} />, label: t('history'), path: '/history', color: '#ef6c00' },
     ];
 
@@ -64,8 +65,8 @@ const HomeScreen = ({ balance, walletBalance, handlePreload, isOnline, syncStats
                         {t(isOnline ? 'system_online' : 'system_offline')}
                     </span>
                 </div>
-                <div style={{ 
-                    width: '10px', height: '10px', borderRadius: '50%', 
+                <div style={{
+                    width: '10px', height: '10px', borderRadius: '50%',
                     background: isOnline ? '#00c853' : '#ff5252',
                     boxShadow: `0 0 10px ${isOnline ? '#00c85388' : '#ff525288'}`,
                     animation: 'pulse 1.5s infinite'
@@ -73,11 +74,11 @@ const HomeScreen = ({ balance, walletBalance, handlePreload, isOnline, syncStats
             </div>
 
             {/* Quick Actions Grid */}
-            <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(4, 1fr)', 
-                gap: '12px', 
-                marginBottom: '28px' 
+            <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(4, 1fr)',
+                gap: '12px',
+                marginBottom: '28px'
             }}>
                 {quickActions.map((action, i) => (
                     <motion.div
@@ -87,10 +88,10 @@ const HomeScreen = ({ balance, walletBalance, handlePreload, isOnline, syncStats
                         onClick={() => navigate(action.path)}
                         style={{ textAlign: 'center', cursor: 'pointer' }}
                     >
-                        <div style={{ 
-                            background: 'white', 
-                            padding: '16px', 
-                            borderRadius: '18px', 
+                        <div style={{
+                            background: 'white',
+                            padding: '16px',
+                            borderRadius: '18px',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -110,21 +111,21 @@ const HomeScreen = ({ balance, walletBalance, handlePreload, isOnline, syncStats
             {/* Balances Quick View */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
                 <div className="card" style={{ padding: '16px', background: 'linear-gradient(135deg, #673ab7 0%, #512da8 100%)', color: 'white', border: 'none' }}>
-                   <p style={{ fontSize: '0.65rem', fontWeight: 800, opacity: 0.8, marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                       <Wallet size={12} /> {t('wallet_balance')}
-                   </p>
-                   <h2 style={{ fontSize: '1.4rem', fontWeight: 800 }}>₹{walletBalance.toLocaleString()}</h2>
+                    <p style={{ fontSize: '0.65rem', fontWeight: 800, opacity: 0.8, marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <Wallet size={12} /> {t('wallet_balance')}
+                    </p>
+                    <h2 style={{ fontSize: '1.4rem', fontWeight: 800 }}>₹{walletBalance.toLocaleString()}</h2>
                 </div>
                 <div className="card" style={{ padding: '16px', background: 'white', border: '1px solid #e1d5ff' }}>
-                   <p style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--primary)', opacity: 0.8, marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                       <Zap size={12} fill="var(--primary)" /> {t('offline_tokens')}
-                   </p>
-                   <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--primary)' }}>₹{balance.toLocaleString()}</h2>
+                    <p style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--primary)', opacity: 0.8, marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <Zap size={12} fill="var(--primary)" /> {t('offline_tokens')}
+                    </p>
+                    <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--primary)' }}>₹{balance.toLocaleString()}</h2>
                 </div>
             </div>
 
             {/* Offline Token Management Card */}
-            <div className="card" style={{ 
+            <div className="card" style={{
                 background: 'linear-gradient(135deg, #fff 0%, #f9f7ff 100%)',
                 marginBottom: '24px',
                 border: '1px solid #e1d5ff'
@@ -139,7 +140,7 @@ const HomeScreen = ({ balance, walletBalance, handlePreload, isOnline, syncStats
                         </div>
                         <h2 style={{ fontSize: '1.5rem', fontWeight: 800 }}>₹{balance.toLocaleString()} / ₹1,000</h2>
                     </div>
-                   <button 
+                    <button
                         onClick={handlePreload}
                         className="btn btn-primary"
                         style={{ padding: '10px 16px', fontSize: '0.75rem', borderRadius: '12px', fontWeight: 800 }}
@@ -147,13 +148,13 @@ const HomeScreen = ({ balance, walletBalance, handlePreload, isOnline, syncStats
                         <PlusCircle size={14} /> {t('authorize_btn')}
                     </button>
                 </div>
-                
+
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '0.7rem', color: '#888', fontWeight: 700 }}>{t('reserve_capacity')}: {((balance/1000)*100).toFixed(0)}%</span>
+                    <span style={{ fontSize: '0.7rem', color: '#888', fontWeight: 700 }}>{t('reserve_capacity')}: {((balance / 1000) * 100).toFixed(0)}%</span>
                     <span style={{ fontSize: '0.7rem', color: '#888', fontWeight: 700 }}>{t('funding_wallet')}</span>
                 </div>
                 <div style={{ background: '#eee', height: '8px', borderRadius: '4px', overflow: 'hidden' }}>
-                    <motion.div 
+                    <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${Math.min(100, (balance / 1000) * 100)}%` }}
                         style={{ height: '100%', background: '#ffab00', borderRadius: '4px' }}
@@ -193,19 +194,21 @@ const HomeScreen = ({ balance, walletBalance, handlePreload, isOnline, syncStats
                     <h3 style={{ fontSize: '1rem', fontWeight: 800 }}>{t('quick_pay_merchants')}</h3>
                     <span style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: 800 }}>{t('see_all')}</span>
                 </div>
-                
+
                 <div style={{ display: 'flex', gap: '16px', overflowX: 'auto', paddingBottom: '12px' }}>
                     {quickMerchants.map(merc => (
-                        <motion.div 
+                        <motion.div
                             key={merc.id}
                             whileTap={{ scale: 0.95 }}
-                            onClick={() => navigate(`/pay/${merc.id}`, { state: { 
-                                merchantName: merc.name,
-                                merchantUpi: merc.upi,
-                                merchantBank: merc.bank
-                            }})}
-                            style={{ 
-                                minWidth: '95px', background: 'white', padding: '16px 12px', borderRadius: '24px', 
+                            onClick={() => navigate(`/pay/${merc.id}`, {
+                                state: {
+                                    merchantName: merc.name,
+                                    merchantUpi: merc.upi,
+                                    merchantBank: merc.bank
+                                }
+                            })}
+                            style={{
+                                minWidth: '95px', background: 'white', padding: '16px 12px', borderRadius: '24px',
                                 textAlign: 'center', boxShadow: '0 6px 16px rgba(0,0,0,0.06)', cursor: 'pointer'
                             }}
                         >

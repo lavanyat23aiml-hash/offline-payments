@@ -24,6 +24,7 @@ import { SyncManager } from './logic/syncManager';
 // UI
 import { Wifi, WifiOff, RefreshCw, User, Wallet, Zap, ShieldCheck } from 'lucide-react';
 import { useLanguage } from './hooks/useLanguage';
+import AIAssistant from './components/AIAssistant';
 
 const AppContent = () => {
   const navigate = useNavigate();
@@ -206,6 +207,9 @@ const AppContent = () => {
           <Zap size={14} fill="#c62828" /> {t('using_reserved_tokens')}
         </div>
       )}
+
+      {/* Secure Multi-Lingual Assistant Core Layer */}
+      <AIAssistant />
     </>
   );
 };
